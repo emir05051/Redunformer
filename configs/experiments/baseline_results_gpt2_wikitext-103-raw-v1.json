@@ -1,0 +1,1 @@
+{"model": "gpt2", "dataset": "wikitext-103-raw-v1", "evaluation_method": "sliding_window_stride_512", "baseline_loss": 3.2258, "baseline_perplexity": 25.1736, "total_tokens_evaluated": 287083, "hardware_device": "cuda", "timestamp": "20260713-115021"}
