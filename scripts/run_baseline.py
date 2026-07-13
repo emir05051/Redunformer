@@ -2,7 +2,7 @@ import argparse
 import time
 
 from redundancy.data import get_wikitext_dataset
-from redundancy.eval import evaluate_perplexity
+from redundancy.eval import evaluate_lm_harness, evaluate_perplexity
 from redundancy.models import RedundancyModel
 from datasets import load_dataset
 from tqdm import tqdm
@@ -30,6 +30,14 @@ def main():
         device=redundancy_model.device,
     )
 
+    harness_res = evaluate_lm_harness(
+        model=redundancy_model.model,
+        tokenizer=redundancy_model.tokenizer,
+        device=redundancy_model.device,
+        tasks=["hellaswag", "lambada", "piqa", "winogrande", "arc_easy", "arc_challenge"],
+    )
+
+    print(f"LM Harness evaluation results: {harness_res}")
     results = {
         "model": args.model,
         "dataset": args.dataset,
@@ -38,10 +46,11 @@ def main():
         "baseline_perplexity": round(perplexity, 4),
         "total_tokens_evaluated": n_tokens,
         "hardware_device": str(redundancy_model.device),
+        "lm_harness_metrics": harness_res,
         "timestamp": time.strftime("%Y%m%d-%H%M%S"),
     }
 
-    output_file = f"configs/experiments/baseline_results_{args.model}_{args.dataset}.json"
+    output_file = f"configs/experiments/{args.model}/baseline_results_{args.dataset}.json"
     with open(output_file, "w") as f:
         json.dump(results, f)
 

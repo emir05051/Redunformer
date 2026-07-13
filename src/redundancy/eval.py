@@ -40,3 +40,13 @@ def evaluate_perplexity(model, tokenizer, dataset, device, stride=512):
     avg_nll = nll_sum / n_tokens
     perplexity = torch.exp(torch.tensor(avg_nll)).item()
     return avg_nll, perplexity, n_tokens
+
+
+def evaluate_lm_harness(model, tokenizer, device, tasks):
+    import lm_eval
+    from lm_eval.models.huggingface import HFLM
+
+    lm_eval_model = HFLM(pretrained=model, tokenizer=tokenizer, batch_size="auto")
+    results = lm_eval.simple_evaluate(model=lm_eval_model, tasks=tasks, log_samples=False)
+
+    return results.get("results", {})

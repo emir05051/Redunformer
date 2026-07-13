@@ -3,7 +3,7 @@ import json
 import time
 
 from redundancy.data import get_wikitext_dataset
-from redundancy.eval import evaluate_perplexity
+from redundancy.eval import evaluate_lm_harness, evaluate_perplexity
 from redundancy.models import RedundancyModel
 from redundancy.pruning.random_pruning import prune_model
 
@@ -17,6 +17,9 @@ def main():
         "--ratio", type=float, default=0.2, help="Percentage of heads to prune (0.0 to 1.0)"
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for head selection")
+    parser.add_argument(
+        "--disable-lm-harness", action="store_true", help="Disable LM Harness evaluation"
+    )
     args = parser.parse_args()
 
     print(f"Initializing pruning evaluation for: {args.model} at {args.ratio*100}% sparsity")
@@ -34,6 +37,17 @@ def main():
         device=redundancy_model.device,
     )
 
+    harness_res = {}
+    if args.disable_lm_harness:
+        print("LM Harness evaluation is disabled.")
+    else:
+        harness_res = evaluate_lm_harness(
+            model=redundancy_model.model,
+            tokenizer=redundancy_model.tokenizer,
+            device=redundancy_model.device,
+            tasks=["hellaswag", "lambada", "piqa", "winogrande", "arc_easy", "arc_challenge"],
+        )
+
     results = {
         "model": args.model,
         "pruning_method": "random_head_pruning",
@@ -44,6 +58,7 @@ def main():
         "pruned_perplexity": round(perplexity, 4),
         "total_tokens_evaluated": n_tokens,
         "hardware_device": str(redundancy_model.device),
+        "lm_harness_metrics": harness_res,
         "timestamp": time.strftime("%Y%m%d-%H%M%S"),
     }
 
@@ -51,7 +66,7 @@ def main():
         hook.remove()
 
     output_file = (
-        f"configs/experiments/pruned_results_{args.model}_{args.dataset}_{args.ratio}.json"
+        f"configs/experiments/pruned_results_{args.model}_{args.dataset}_{args.ratio:.2f}.json"
     )
     with open(output_file, "w") as f:
         json.dump(results, f)
