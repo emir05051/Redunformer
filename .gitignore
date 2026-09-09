@@ -11,3 +11,6 @@ configs/models/*
 
 configs/datasets/*
 !configs/datasets/.gitkeep
+
+outputs/
+.uv-cache/
