@@ -9,6 +9,9 @@ __pycache__/
 configs/models/*
 !configs/models/.gitkeep
 
+# Hugging Face cache created when scripts are run from scripts/.
+scripts/configs/models/
+
 configs/datasets/*
 !configs/datasets/.gitkeep
 
